@@ -316,10 +316,6 @@ public class ProbAgent extends Agent {
 				default:
 					break;
 			}
-			
-			Vector2D position = new Vector2D(tempX, tempY);
-
-			Space neighbor = new Space(position);
 
 			if(checkValidNeighbor(tempX, tempY)) //check if it's a valid space
 			{				
