@@ -6,7 +6,7 @@ import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
 import edu.cwru.SimpleRTS.model.unit.Unit.UnitView;
 
-public class TowerAgent extends Agent {
+public class ProbAgent extends Agent {
 
 	private static final long serialVersionUID = 1L;
 	static int playernum = 0;
@@ -14,8 +14,9 @@ public class TowerAgent extends Agent {
 	static String peasant = "Peasant";
 	static String gather = "gather";
 	static String deposit = "deposit";
-	private ArrayList<Integer> peasantID = new ArrayList<Integer>();
+	private List<Integer> peasantID = new ArrayList<Integer>();
 	private List<Integer> townHallIds;
+	int waitCounter = 0;
 	
 	/*
 	 * Variables used for searching
@@ -29,7 +30,7 @@ public class TowerAgent extends Agent {
 	UnitView currentPeasant;
 	StateView publicState = null;
 	
-	public TowerAgent(int playernum, String[] args) 
+	public ProbAgent(int playernum, String[] args) 
 	{
 		super(playernum);
 	}
@@ -37,7 +38,20 @@ public class TowerAgent extends Agent {
 	@Override
 	public Map<Integer, Action> initialStep(StateView state) 
 	{	
+		peasantID = findUnitType(state.getAllUnitIds(), state, peasant);
 		currentPeasant = state.getUnit(peasantID.get(0));
+		int size = spaces.size();
+		for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
+		{
+			spaces.add(new ArrayList<Space>());
+		}
+		size = spaces.get(currentPeasant.getXPosition()).size();
+		for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
+		{
+			Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
+			spaces.get(currentPeasant.getXPosition()).add(new Space(location));
+		}
+		spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
 		return middleStep(state);
 	}
 	
@@ -46,31 +60,71 @@ public class TowerAgent extends Agent {
 	{		
 		Map<Integer, Action> actions = new HashMap<Integer, Action>();
 		publicState = state;
-
+		if (publicState.getUnit(currentPeasant.getID()) == null)
+		{
+			if (peasantID.size() > 0)
+			{
+				peasantID.remove(0);
+				if (peasantID.size() <= 0)
+				{
+					System.out.println("No more peasants");
+					return actions;
+				}
+				currentPeasant = state.getUnit(peasantID.get(0));
+				int size = spaces.size();
+				for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
+				{
+					spaces.add(new ArrayList<Space>());
+				}
+				size = spaces.get(currentPeasant.getXPosition()).size();
+				for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
+				{
+					Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
+					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
+				}
+				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			}
+			else
+			{
+				return actions;
+			}
+		}
+		currentPeasant = state.getUnit(peasantID.get(0));
+		
 		if (path.size() <= 0) //main loop
 		{
 			if (move == null) //get and make a move
 			{
+				System.out.println("making move");
 				move = getMove();
 				actions.put(currentPeasant.getID(), makeMove(move));
 			}
 			else //check if we were hit
 			{
-				if (checkHit()) //if we were hit
+				if (waitCounter == 1)
 				{
-					hitList.add(move);
-					makeMove(move.parent);
-					addTowers(move);
+					System.out.println("checking hit");
+					if (checkHit()) //if we were hit
+					{
+						System.out.println("hit");
+						hitList.add(move);
+						actions.put(currentPeasant.getID(), makeMove(move.parent));
+						addTowers(move);
+					}
+					else //add node to safe list
+					{
+						System.out.println("not hit");
+						move.visited = true;
+						updateTowers(move);		
+						move = new Space();
+						move = null;
+					}
+					waitCounter = 0;
 				}
-				else //add node to safe list
-				{
-					move.visited = true;
-					updateTowers(move);
-				}
+				else
+					waitCounter++;
 				
-				openList.remove(move);				
-				move = new Space();
-				move = null;
+				openList.remove(move);		
 			}
 		}
 		else
@@ -101,7 +155,13 @@ public class TowerAgent extends Agent {
 
 	private boolean checkHit() {
 		
-		if (currentPeasant.getHP() < peasantHealth)
+		if (publicState.getUnit(currentPeasant.getID()) == null)
+		{
+			peasantID.remove(0);
+			System.out.println(peasantID.size());
+			return true;
+		}
+		else if(currentPeasant.getHP() < peasantHealth)
 			return true;
 		
 		return false;
@@ -110,6 +170,7 @@ public class TowerAgent extends Agent {
 	private Action makeMove(Space move) {
 		
 		peasantHealth = currentPeasant.getHP();
+		System.out.printf("moving to (%s, %s) with health %s\n", move.pos.x, move.pos.y, peasantHealth);
 		return Action.createCompoundMove(currentPeasant.getID(), move.pos.x, move.pos.y);
 	}
 	
@@ -125,6 +186,7 @@ public class TowerAgent extends Agent {
 		if (containsGold(neighbors)) //make sure we didn't return a gold node
 			return null;
 		
+
 		addToOL(neighbors); //add the valid neighbors to the OL
 		
 		Space lowestProbSpace = getLowestProb(openList);
@@ -193,12 +255,13 @@ public class TowerAgent extends Agent {
 
 	private ArrayList<Space> checkVisited(ArrayList<Space> neighbors) {
 		
+		ArrayList<Space> returnList = new ArrayList<Space>();
 		for (Space space : neighbors)
 		{
-			if (space.visited)
-				neighbors.remove(space);
+			if (!space.visited)
+				returnList.add(space);
 		}
-		return neighbors;
+		return returnList;
 	}
 
 	private ArrayList<Space> getNeighbors(UnitView peasant) {
@@ -259,18 +322,31 @@ public class TowerAgent extends Agent {
 			Space neighbor = new Space(position);
 
 			if(checkValidNeighbor(tempX, tempY)) //check if it's a valid space
-			{
-				if (spaces.get(tempX).get(tempY) == null)
-				{
-					if (spaces.get(tempX) == null)
+			{				
+				try {
+					spaces.get(tempX);
+						
+				} catch (Exception e) {
+					int size = spaces.size();
+					
+					for (int j1 = 0; j1 <= tempX - size; j1++)
 					{
-						spaces.add(tempX, new ArrayList<Space>());
-					}
-					if (spaces.get(tempX).get(tempY) == null)
-					{
-						spaces.get(tempX).add(tempY, neighbor);
+						spaces.add(new ArrayList<Space>());
 					}
 				}
+				try {
+					spaces.get(tempX).get(tempY);
+						
+				} catch (Exception e) {
+					int size = spaces.get(tempX).size();
+					
+					for (int j1 = 0; j1 <= tempY - size; j1++)
+					{
+						Vector2D location = new Vector2D(tempX, size + j1);
+						spaces.get(tempX).add(new Space(location));
+					}
+				}
+				spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
 				neighbors.add(spaces.get(tempX).get(tempY));
 			}
 		}		
@@ -288,5 +364,23 @@ public class TowerAgent extends Agent {
 		isResource = publicState.isResourceAt(x, y);
 		
 		return ((!isUnit && !isResource) && isValid);
+	}
+	
+	public List<Integer> findUnitType(List<Integer> ids, StateView state, String name)	{
+
+		List<Integer> unitIds = new ArrayList<Integer>();
+
+		for (int x = 0; x < ids.size(); x++)
+		{
+			Integer unitId = ids.get(x);
+			UnitView unit = state.getUnit(unitId);
+
+			if(unit.getTemplateView().getUnitName().equals(name))
+			{
+				unitIds.add(unitId);
+			}
+		}
+
+		return unitIds;
 	}
 }
