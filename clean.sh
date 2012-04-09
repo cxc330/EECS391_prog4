@@ -1,0 +1,1 @@
+rm bin/edu/cwru/SimpleRTS/agent/*.class
