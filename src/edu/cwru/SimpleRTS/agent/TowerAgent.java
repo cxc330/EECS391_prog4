@@ -260,7 +260,18 @@ public class TowerAgent extends Agent {
 
 			if(checkValidNeighbor(tempX, tempY)) //check if it's a valid space
 			{
-				neighbors.add(neighbor);
+				if (spaces.get(tempX).get(tempY) == null)
+				{
+					if (spaces.get(tempX) == null)
+					{
+						spaces.add(tempX, new ArrayList<Space>());
+					}
+					if (spaces.get(tempX).get(tempY) == null)
+					{
+						spaces.get(tempX).add(tempY, neighbor);
+					}
+				}
+				neighbors.add(spaces.get(tempX).get(tempY));
 			}
 		}		
 		return neighbors;
