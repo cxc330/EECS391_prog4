@@ -11,7 +11,7 @@ public class Space {
 		pos = position;
 	}
 	
-	Space parent;
+	Space parent = null;
 	boolean visited = false;
 	boolean gold = false;
 

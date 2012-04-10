@@ -366,7 +366,8 @@ public class ProbAgent extends Agent {
 						spaces.get(tempX).add(new Space(location));
 					}
 				}
-				spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
+				if (spaces.get(tempX).get(tempY).parent == null)
+					spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
 				neighbors.add(spaces.get(tempX).get(tempY));
 			}
 		}		
