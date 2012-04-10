@@ -228,11 +228,11 @@ public class ProbAgent extends Agent {
 		addToOpenList(neighbors); //add the valid neighbors to the Open List
 		
 		Space lowestProbSpace = getLowestProb(openList);
-		int lowestProb = getProb(lowestProbSpace);
+		int lowestProb = getProb(lowestProbSpace, neighbors);
 		
 		for (Space neighbor : neighbors) //check if one of our neighbors is the best choice
 		{
-			if (getProb(neighbor) <= lowestProb) //if it's better or the same as best choice
+			if (getProb(neighbor, neighbors) <= lowestProb) //if it's better or the same as best choice
 			{
 				return getFromOL(neighbor); //return it
 			}
@@ -250,10 +250,12 @@ public class ProbAgent extends Agent {
 		return null;
 	}
 
-	private int getProb(Space space) {
+	private int getProb(Space space, ArrayList<Space> spaces) {
 		
-		Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+		//Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
 		Vector2D spaceLoc = space.pos;
+		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
+		
 		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 0);		
 	}
 
@@ -262,13 +264,14 @@ public class ProbAgent extends Agent {
 		
 		int lowestProb = Integer.MAX_VALUE;
 		Space lowestSpace = null;
-		
+		int tempProb = -1;
 		for (Space space : spaces)
-		{
-			if (getProb(space) <= lowestProb)
+		{	
+			tempProb = getProb(space, spaces);
+			if (tempProb <= lowestProb)
 			{
 				lowestSpace = space;
-				lowestProb = getProb(lowestSpace);
+				lowestProb = tempProb;
 			}
 		}
 		
