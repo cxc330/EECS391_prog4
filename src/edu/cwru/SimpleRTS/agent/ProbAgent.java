@@ -44,7 +44,7 @@ public class ProbAgent extends Agent {
 		{	
 			currentPeasant = state.getUnit(peasantID.get(0));
 			int size = spaces.size();
-			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //instantiating the 2d arraylist for storing the info
+			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //instantiating the 2d arraylist
 			{
 				spaces.add(new ArrayList<Space>());
 			}
@@ -69,10 +69,12 @@ public class ProbAgent extends Agent {
 	{		
 		Map<Integer, Action> actions = new HashMap<Integer, Action>();
 		publicState = state;
-		if (checkPeasantDeath())
+		
+		if (AllPeasantsAreDead()) //check to see if peasants are dead
 		{
 			return actions;
 		}
+		
 		currentPeasant = state.getUnit(peasantID.get(0));
 		
 		if (path.size() <= 0) //main loop
@@ -118,7 +120,8 @@ public class ProbAgent extends Agent {
 		return actions;
 	}
 
-	private boolean checkPeasantDeath() {
+	//returns true if all peasants are dead, else return false
+	private boolean AllPeasantsAreDead() {
 		if (publicState.getUnit(currentPeasant.getID()) == null)
 		{
 			if (peasantID.size() > 0)
