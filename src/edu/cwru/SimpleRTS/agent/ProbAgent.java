@@ -240,7 +240,7 @@ public class ProbAgent extends Agent {
 		
 		towers.clear();
 		towers.addAll(tempList);
-		System.out.println(towers.toString());
+		
 	}
 
 	private void addTowers(Space move) {
@@ -272,7 +272,7 @@ public class ProbAgent extends Agent {
 			}
 		}
 
-		System.out.println(towers.toString());
+		
 	}
 	
 	private boolean withinTowerRadius(Space move, Space tower)
@@ -423,7 +423,7 @@ public class ProbAgent extends Agent {
 		Vector2D spaceLoc = space.pos; 
 		
 		if (numTowers > 0)
-			return (numTowersWithRadius * numTowers);// * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
+			return (numTowersWithRadius * numTowers) * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 25, 1);
 		else
 			return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
 		
@@ -480,7 +480,7 @@ public class ProbAgent extends Agent {
 		ArrayList<Space> unvisitedNeighbors = new ArrayList<Space>();
 		for (Space space : neighbors)
 		{
-			if (!space.visited)
+			if (!space.visited && !hitList.contains(space))
 				unvisitedNeighbors.add(space);
 		}
 		return unvisitedNeighbors;
