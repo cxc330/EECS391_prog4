@@ -101,7 +101,7 @@ public class ProbAgent extends Agent {
 					{
 						System.out.println("hit");
 						hitList.add(move);
-						actions.put(currentPeasant.getID(), makeMove(move.parent));
+						actions.put(currentPeasant.getID(), makeMove(move.parent)); //moving peasant back
 						move.visited = true;
 						visitedSpaces.add(move);
 						addTowers(move);
@@ -240,7 +240,6 @@ public class ProbAgent extends Agent {
 		
 		towers.clear();
 		towers.addAll(tempList);
-		System.out.println(towers.toString());
 	}
 
 	private void addTowers(Space move) {
@@ -266,13 +265,49 @@ public class ProbAgent extends Agent {
 					if (!isUnit && !isResource && isValid && !towers.contains(tower)) //check it can exist there 
 					{
 						towers.add(tower);
-						System.out.println("added tower " + towerLoc.toString());
+						System.out.println("Added tower " + towerLoc.toString());
 					}
 				}
 			}
+			
+			markPossibleHitInMap(tower.pos);
 		}
-
-		System.out.println(towers.toString());
+		
+	}
+	
+	private void markPossibleHitInMap(Vector2D tower)
+	{
+		Integer startX = tower.x - towerRadius;
+		Integer startY = tower.y - towerRadius;
+		int outerLoopCount = towerRadius * 2;
+		int innerLoopCount = outerLoopCount;
+		if(startX < 0)
+		{
+			outerLoopCount += startX;
+			startX = 0;
+		}
+		else if((startX + outerLoopCount) > mapSize)
+		{
+			outerLoopCount -= (startX + outerLoopCount) - mapSize;
+		}
+		
+		if(startY < 0)
+		{
+			innerLoopCount += startY;
+			startY = 0;
+		}
+		else if((startY + innerLoopCount) > mapSize)
+		{
+			innerLoopCount -= (startY + innerLoopCount) - mapSize;
+		}
+		
+		for(int i = 0; i < outerLoopCount; i++)
+		{
+			for(int j = 0; j < innerLoopCount; j++)
+			{
+				Map_Representation.get(startX + i).get(startY + j).possibleHit = true;
+			}
+		}
 	}
 	
 	private boolean withinTowerRadius(Space move, Space tower)
@@ -382,9 +417,9 @@ public class ProbAgent extends Agent {
 		
 		for (Space neighbor : neighbors) //check if one of our neighbors is the best choice
 		{
-			if (getProb(neighbor, neighbors) <= lowestProb) //if it's better or the same as best choice
+			if (getProb(neighbor) <= lowestProb) //if it's better or the same as best choice
 			{
-				lowestProb = getProb(neighbor, neighbors);
+				lowestProb = getProb(neighbor);
 				lowestProbSpace = neighbor;
 			}
 		}
@@ -407,10 +442,11 @@ public class ProbAgent extends Agent {
 		return null;
 	}
 
-	private int getProb(Space space, ArrayList<Space> Map_Representation) {
+	private int getProb(Space space) {
 		
-		//Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+		Vector2D spaceLoc = space.pos; 
 		
+		int returnVal = DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, mapSize, 0); // top right corner
 		int numTowersWithRadius = 0;
 		int numTowers = towers.size();
 		
@@ -420,12 +456,21 @@ public class ProbAgent extends Agent {
 				numTowersWithRadius++;
 		}
 		
-		Vector2D spaceLoc = space.pos; 
-		
-		if (numTowers > 0)
+		/*if (numTowers > 0)
 			return (numTowersWithRadius * numTowers);// * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
 		else
 			return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
+		*/
+		
+		Space temp = Map_Representation.get(space.pos.x).get(space.pos.y);
+		
+		if(temp.possibleHit)
+			returnVal += 100;
+		
+		if(temp.visited)
+			returnVal += 150;
+		
+		return returnVal;
 		
 				
 	}
@@ -438,7 +483,7 @@ public class ProbAgent extends Agent {
 		int tempProb = -1;
 		for (Space space : spaces)
 		{	
-			tempProb = getProb(space, spaces);
+			tempProb = getProb(space);
 			System.out.println("For space (" + space.pos.x + ", " + space.pos.y + "), tempProb: " + tempProb);
 			if (tempProb <= lowestProb)
 			{

@@ -8,6 +8,8 @@ public class Space {
 	boolean gold = false;
 	boolean tree = false;
 	int tower = -1; //-1 undetermined, 0 = no tower, 1 = yes tower
+	boolean possibleTower = false;
+	boolean possibleHit = false;
 	
 	//Default Constructor
 	public Space (){
