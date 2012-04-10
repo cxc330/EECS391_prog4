@@ -209,7 +209,7 @@ public class ProbAgent extends Agent {
 		addToOpenList(neighbors); //add the valid neighbors to the Open List
 		
 		Space lowestProbSpace = getLowestProb(openList);
-		int lowestProb = getProb(lowestProbSpace, neighbors);
+		int lowestProb = getProb(lowestProbSpace, openList);
 		
 		for (Space neighbor : neighbors) //check if one of our neighbors is the best choice
 		{
