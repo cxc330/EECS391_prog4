@@ -44,7 +44,7 @@ public class ProbAgent extends Agent {
 		{	
 			currentPeasant = state.getUnit(peasantID.get(0));
 			int size = spaces.size();
-			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
+			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //instantiating the 2d arraylist for storing the info
 			{
 				spaces.add(new ArrayList<Space>());
 			}
