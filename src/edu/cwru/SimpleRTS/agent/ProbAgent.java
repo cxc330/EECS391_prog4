@@ -525,7 +525,7 @@ public class ProbAgent extends Agent {
 		ArrayList<Space> unvisitedNeighbors = new ArrayList<Space>();
 		for (Space space : neighbors)
 		{
-			if (!space.visited)
+			if (!space.visited && !hitList.contains(space))
 				unvisitedNeighbors.add(space);
 		}
 		return unvisitedNeighbors;
