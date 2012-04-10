@@ -238,6 +238,8 @@ public class ProbAgent extends Agent {
 			{
 				openList.add(space);
 			}
+			else
+				System.out.println("open list contains me");
 		}
 		
 	}
@@ -260,6 +262,8 @@ public class ProbAgent extends Agent {
 		{
 			if (!space.visited)
 				returnList.add(space);
+			else
+				System.out.println("all ready visited this space");
 		}
 		return returnList;
 	}
@@ -281,11 +285,11 @@ public class ProbAgent extends Agent {
 		{
 			switch(j)
 			{
-				case 0: //x + 1, y
+				case 1: //x + 1, y
 					tempX = xPlusOne;
 					tempY = y;
 					break;
-				case 1: //x + 1, y + 1
+				case 0: //x + 1, y + 1
 					tempX = xPlusOne;
 					tempY = yPlusOne;
 					break;
@@ -293,11 +297,11 @@ public class ProbAgent extends Agent {
 					tempX = xPlusOne;
 					tempY = yMinusOne;
 					break;
-				case 3: //x, y + 1
+				case 4: //x, y + 1
 					tempX = x;
 					tempY = yPlusOne;
 					break;
-				case 4: //x, y - 1
+				case 3: //x, y - 1
 					tempX = x;
 					tempY = yMinusOne;
 					break;
