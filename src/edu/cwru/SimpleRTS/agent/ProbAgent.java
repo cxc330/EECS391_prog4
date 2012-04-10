@@ -4,6 +4,9 @@ import java.util.*;
 
 import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
+import edu.cwru.SimpleRTS.model.Template.TemplateView;
+import edu.cwru.SimpleRTS.model.resource.ResourceNode.Type;
+import edu.cwru.SimpleRTS.model.resource.ResourceType;
 import edu.cwru.SimpleRTS.model.unit.Unit.UnitView;
 import edu.cwru.SimpleRTS.util.DistanceMetrics;
 
@@ -31,6 +34,7 @@ public class ProbAgent extends Agent {
 	UnitView currentPeasant;
 	StateView publicState = null;
 	Stack<Space> returnNodes = new Stack<Space>();
+	int costOfPeasant;
 	
 	public ProbAgent(int playernum, String[] args) 
 	{
@@ -56,6 +60,7 @@ public class ProbAgent extends Agent {
 				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 			}
 			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			costOfPeasant =  state.getUnit(peasantID.get(0)).getTemplateView().getGoldCost();
 			return middleStep(state);
 		}
 		else
@@ -71,7 +76,7 @@ public class ProbAgent extends Agent {
 		Map<Integer, Action> actions = new HashMap<Integer, Action>();
 		publicState = state;
 		
-		if (AllPeasantsAreDead()) //check to see if peasants are dead
+		if (AllPeasantsAreDead(actions)) //check to see if peasants are dead
 		{
 			return actions;
 		}
@@ -123,7 +128,7 @@ public class ProbAgent extends Agent {
 	}
 
 	//returns true if all peasants are dead, else return false
-	private boolean AllPeasantsAreDead() {
+	private boolean AllPeasantsAreDead(Map<Integer, Action> actions) {
 		if (publicState.getUnit(currentPeasant.getID()) == null)
 		{
 			if (peasantID.size() > 0)
@@ -132,7 +137,9 @@ public class ProbAgent extends Agent {
 				if (peasantID.size() <= 0)
 				{
 					System.out.println("No more peasants.");
-					return true;
+					
+						buildPeasant(actions);
+						return true;
 				}
 				currentPeasant = publicState.getUnit(peasantID.get(0));
 				int size = spaces.size();
@@ -160,6 +167,19 @@ public class ProbAgent extends Agent {
 			{
 				return true;
 			}
+		}
+		return false;
+	}
+
+	private boolean buildPeasant( Map<Integer, Action> actions) {
+		
+		if (publicState.getResourceAmount(0, ResourceType.GOLD) >= costOfPeasant)
+		{
+			TemplateView peasantTemplate = publicState.getTemplate(playernum, peasant);
+			Action buildPeasants = Action.createCompoundProduction(townHallIds.get(0), peasantTemplate.getID());
+			actions.put(townHallIds.get(0), buildPeasants);
+			System.out.println("Building new peasant");
+			return true;
 		}
 		return false;
 	}
