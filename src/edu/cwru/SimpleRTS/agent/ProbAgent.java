@@ -63,7 +63,7 @@ public class ProbAgent extends Agent {
 				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 			}
 			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-			visitedSpaces.add(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
+			//(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
 			costOfPeasant =  state.getUnit(peasantID.get(0)).getTemplateView().getGoldCost();
 			return middleStep(state);
 		}
@@ -113,7 +113,11 @@ public class ProbAgent extends Agent {
 					{
 						System.out.println("not hit");
 						move.visited = true;
-						visitedSpaces.add(move);
+						//TODO: JEFF figure out why it's null
+						if(move.pos.x != null)
+						{
+							visitedSpaces.add(move);
+						}
 						updateTowers(move);		
 						move = new Space();
 						move = null;
@@ -209,10 +213,23 @@ public class ProbAgent extends Agent {
 			
 			int distance = DistanceMetrics.chebyshevDistance(towerLoc.x, towerLoc.y, moveLoc.x, moveLoc.y);
 			
+			
+			//TODO: JEFF NEEDS TO GRAB LOCATION FROM spaces... spaces should gather location on trees/resources and mark as such
+			boolean isUnit = publicState.isUnitAt(towerLoc.x, towerLoc.y);
+			boolean isResource = publicState.isResourceAt(towerLoc.x, towerLoc.y);
+			boolean isValid = publicState.inBounds(towerLoc.x, towerLoc.y);
+			
 			if (distance <= towerRadius)
 			{
-				tempList.add(tower);
-			}				
+				if (!isUnit && !isResource && isValid) //check it can exist there 
+				{
+					tempList.add(tower);
+				}
+			}
+			else
+			{
+				System.out.println("Removed tower at " + towerLoc.toString());
+			}
 		}
 		
 		towers.clear();
@@ -231,7 +248,6 @@ public class ProbAgent extends Agent {
 			for (Space visited : visitedSpaces)
 			{
 				Vector2D visitedLoc = visited.pos;
-				
 				Integer distance = DistanceMetrics.chebyshevDistance(towerLoc.x, towerLoc.y, visitedLoc.x, visitedLoc.y);
 				
 				boolean isUnit = publicState.isUnitAt(towerLoc.x, towerLoc.y);
@@ -240,17 +256,28 @@ public class ProbAgent extends Agent {
 				
 				if (distance <= towerRadius)
 				{
-					if (!isUnit && !isResource && isValid) //check it can exist there 
+					if (!isUnit && !isResource && isValid && !towers.contains(tower)) //check it can exist there 
 					{
 						towers.add(tower);
-						System.out.println("added tower");
+						System.out.println("added tower " + towerLoc.toString());
 					}
 				}
 			}
 		}
 	}
+	
+	private boolean withinTowerRadius(Space move, Space tower)
+	{
+		Integer distance = DistanceMetrics.chebyshevDistance(tower.pos.x, tower.pos.y, move.pos.x, move.pos.y);
+		
+		if (distance <= towerRadius)
+			return true;
+		
+		return false;
+	}
 
 	private ArrayList<Space> getPossibleTowers(Space move) {
+		
 		ArrayList<Space> possibleTowers = new ArrayList<Space>();
 		
 		Vector2D moveLoc = move.pos;
@@ -288,7 +315,7 @@ public class ProbAgent extends Agent {
 			Integer yTemp = yMax - x;
 			Space tower = new Space(new Vector2D(xMin, yTemp));
 			possibleTowers.add(tower);
-		}
+		}		
 		
 		return possibleTowers;
 	}
@@ -364,10 +391,24 @@ public class ProbAgent extends Agent {
 	private int getProb(Space space, ArrayList<Space> spaces) {
 		
 		//Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
-		Vector2D spaceLoc = space.pos;
-		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
 		
-		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 0);		
+		int numTowersWithRadius = 0;
+		int numTowers = towers.size();
+		
+		for (Space tower : towers)
+		{
+			if (withinTowerRadius(space, tower))
+				numTowersWithRadius++;
+		}
+		
+		Vector2D spaceLoc = space.pos; 
+		
+		/*if (numTowers > 0)
+			return (numTowersWithRadius/numTowers) * 10 * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
+		else*/
+			return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
+		
+				
 	}
 
 	//returns the lowest space with the lowest probability, lowest probability being most optimal
