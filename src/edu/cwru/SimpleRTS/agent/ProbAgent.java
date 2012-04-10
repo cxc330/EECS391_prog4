@@ -31,6 +31,7 @@ public class ProbAgent extends Agent {
 	ArrayList<Space> path = new ArrayList<Space>(); //List of Spaces that is the path
 	ArrayList<ArrayList<Space>> spaces = new ArrayList<ArrayList<Space>>(); //2D array for spaces
 	ArrayList<Space> towers = new ArrayList<Space>(); //List of Spaces that has towers
+	ArrayList<Space> visitedSpaces = new ArrayList<Space>();
 	Space move = new Space();
 	int peasantHealth = -1;
 	UnitView currentPeasant;
@@ -62,6 +63,7 @@ public class ProbAgent extends Agent {
 				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 			}
 			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			visitedSpaces.add(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
 			costOfPeasant =  state.getUnit(peasantID.get(0)).getTemplateView().getGoldCost();
 			return middleStep(state);
 		}
@@ -103,13 +105,15 @@ public class ProbAgent extends Agent {
 						System.out.println("hit");
 						hitList.add(move);
 						actions.put(currentPeasant.getID(), makeMove(move.parent));
-						addTowers(move);
 						move.visited = true;
+						visitedSpaces.add(move);
+						addTowers(move);
 					}
 					else //add node to safe list
 					{
 						System.out.println("not hit");
 						move.visited = true;
+						visitedSpaces.add(move);
 						updateTowers(move);		
 						move = new Space();
 						move = null;
@@ -156,7 +160,7 @@ public class ProbAgent extends Agent {
 					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 				}
 				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-				
+				visitedSpaces.add(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
 				Space temp = hitList.get(hitList.size() -1).parent;
 				
 				while (temp.parent != null)
@@ -216,7 +220,77 @@ public class ProbAgent extends Agent {
 	}
 
 	private void addTowers(Space move) {
-		//towers.add(move);
+		
+		ArrayList<Space> possibleTowers = getPossibleTowers(move);
+		
+		//remove towers that are not possible because we haven't been hit in that square within radius of it
+		for (Space tower : possibleTowers)
+		{
+			Vector2D towerLoc = tower.pos;
+			
+			for (Space visited : visitedSpaces)
+			{
+				Vector2D visitedLoc = visited.pos;
+				
+				Integer distance = DistanceMetrics.chebyshevDistance(towerLoc.x, towerLoc.y, visitedLoc.x, visitedLoc.y);
+				
+				boolean isUnit = publicState.isUnitAt(towerLoc.x, towerLoc.y);
+				boolean isResource = publicState.isResourceAt(towerLoc.x, towerLoc.y);
+				boolean isValid = publicState.inBounds(towerLoc.x, towerLoc.y);
+				
+				if (distance <= towerRadius)
+				{
+					if (!isUnit && !isResource && isValid) //check it can exist there 
+					{
+						towers.add(tower);
+						System.out.println("added tower");
+					}
+				}
+			}
+		}
+	}
+
+	private ArrayList<Space> getPossibleTowers(Space move) {
+		ArrayList<Space> possibleTowers = new ArrayList<Space>();
+		
+		Vector2D moveLoc = move.pos;
+		
+		Integer yMin = moveLoc.y - towerRadius;
+		Integer yMax = moveLoc.y + towerRadius;
+		
+		Integer xMin = moveLoc.x - towerRadius;
+		Integer xMax = moveLoc.x + towerRadius;
+		
+		//from xMin, yMin -> xMax, yMin		
+		for (int x = 0; x < xMax - xMin; x++)
+		{
+			Integer xTemp = xMin + x;
+			Space tower = new Space(new Vector2D(xTemp, yMin));
+			possibleTowers.add(tower);
+		}
+		//from xMax, yMin -> xMax, yMax		
+		for (int x = 0; x < yMax - yMin; x++)
+		{
+			Integer yTemp = yMin + x;
+			Space tower = new Space(new Vector2D(xMax, yTemp));
+			possibleTowers.add(tower);
+		}
+		//from xMax, yMax -> xMin, yMax		
+		for (int x = 0; x < xMax - xMin; x++)
+		{
+			Integer xTemp = xMax - x;
+			Space tower = new Space(new Vector2D(xTemp, yMax));
+			possibleTowers.add(tower);
+		}
+		//from xMin, yMax -> xMin, yMin		
+		for (int x = 0; x < yMax - yMin; x++)
+		{
+			Integer yTemp = yMax - x;
+			Space tower = new Space(new Vector2D(xMin, yTemp));
+			possibleTowers.add(tower);
+		}
+		
+		return possibleTowers;
 	}
 
 	//This checks to see if the peasant has been hit and returns true for hit and false for no hit.
