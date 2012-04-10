@@ -281,7 +281,7 @@ public class ProbAgent extends Agent {
 		Vector2D spaceLoc = space.pos;
 		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
 		
-		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 100);		
+		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 0);		
 	}
 
 	//returns the lowest space with the lowest probability, lowest probability being most optimal
