@@ -5,6 +5,7 @@ import java.util.*;
 import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
 import edu.cwru.SimpleRTS.model.unit.Unit.UnitView;
+import edu.cwru.SimpleRTS.util.DistanceMetrics;
 
 public class ProbAgent extends Agent {
 
@@ -68,34 +69,9 @@ public class ProbAgent extends Agent {
 	{		
 		Map<Integer, Action> actions = new HashMap<Integer, Action>();
 		publicState = state;
-		if (publicState.getUnit(currentPeasant.getID()) == null)
+		if (checkPeasantDeath())
 		{
-			if (peasantID.size() > 0)
-			{
-				peasantID.remove(0);
-				if (peasantID.size() <= 0)
-				{
-					System.out.println("No more peasants");
-					return actions;
-				}
-				currentPeasant = state.getUnit(peasantID.get(0));
-				int size = spaces.size();
-				for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
-				{
-					spaces.add(new ArrayList<Space>());
-				}
-				size = spaces.get(currentPeasant.getXPosition()).size();
-				for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
-				{
-					Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
-					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
-				}
-				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-			}
-			else
-			{
-				return actions;
-			}
+			return actions;
 		}
 		currentPeasant = state.getUnit(peasantID.get(0));
 		
@@ -140,6 +116,39 @@ public class ProbAgent extends Agent {
 			traverse(path);
 		}
 		return actions;
+	}
+
+	private boolean checkPeasantDeath() {
+		if (publicState.getUnit(currentPeasant.getID()) == null)
+		{
+			if (peasantID.size() > 0)
+			{
+				peasantID.remove(0);
+				if (peasantID.size() <= 0)
+				{
+					System.out.println("No more peasants");
+					return true;
+				}
+				currentPeasant = publicState.getUnit(peasantID.get(0));
+				int size = spaces.size();
+				for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
+				{
+					spaces.add(new ArrayList<Space>());
+				}
+				size = spaces.get(currentPeasant.getXPosition()).size();
+				for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
+				{
+					Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
+					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
+				}
+				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -220,22 +229,29 @@ public class ProbAgent extends Agent {
 		return null;
 	}
 
-	private int getProb(Space lowestProbSpace) {
-		// TODO calculate the probability of the square... should be constant if outside range of tower
-		return 0;
+	private int getProb(Space space) {
+		
+		Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+		Vector2D spaceLoc = space.pos;
+		
+		return DistanceMetrics.chebyshevDistance(peasantLoc.x, peasantLoc.y, 100, 0);		
 	}
 
 	private Space getLowestProb(ArrayList<Space> spaces) {
 		
 		int lowestProb = Integer.MAX_VALUE;
+		Space lowestSpace = null;
 		
 		for (Space space : spaces)
 		{
 			if (getProb(space) <= lowestProb)
-				return space;
+			{
+				lowestSpace = space;
+				lowestProb = getProb(lowestSpace);
+			}
 		}
 		
-		return null;
+		return lowestSpace;
 	}
 
 	private void addToOL(ArrayList<Space> spaces) {
@@ -246,8 +262,6 @@ public class ProbAgent extends Agent {
 			{
 				openList.add(space);
 			}
-			else
-				System.out.println("open list contains me");
 		}
 		
 	}
@@ -270,8 +284,6 @@ public class ProbAgent extends Agent {
 		{
 			if (!space.visited)
 				returnList.add(space);
-			else
-				System.out.println("all ready visited this space");
 		}
 		return returnList;
 	}
