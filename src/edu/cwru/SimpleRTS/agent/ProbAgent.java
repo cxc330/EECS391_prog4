@@ -253,7 +253,7 @@ public class ProbAgent extends Agent {
 		
 		Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
 		Vector2D spaceLoc = space.pos;
-		return DistanceMetrics.chebyshevDistance(peasantLoc.x, peasantLoc.y, 100, 0);		
+		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 0);		
 	}
 
 	//returns the lowest space with the lowest probability, lowest probability being most optimal
