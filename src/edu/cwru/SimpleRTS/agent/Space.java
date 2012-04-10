@@ -14,7 +14,8 @@ public class Space {
 	Space parent = null;
 	boolean visited = false;
 	boolean gold = false;
-
+	boolean tree = false;
+	
 	public boolean equals(Space s)
 	{
 		return s.pos.equals(pos);

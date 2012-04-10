@@ -99,6 +99,7 @@ public class ProbAgent extends Agent {
 			{
 				if (waitCounter == 1)
 				{
+					checkTrees(move);
 					System.out.println("checking hit");
 					if (checkHit()) //if we were hit
 					{
@@ -135,6 +136,16 @@ public class ProbAgent extends Agent {
 			traverse(path);
 		}
 		return actions;
+	}
+
+	private void checkTrees(Space move) {
+		List<Integer> resources = publicState.getAllResourceIds();
+		
+		for (Integer resource : resources)
+		{
+			spaces.get(publicState.getResourceNode(resource).getXPosition()).get(publicState.getResourceNode(resource).getYPosition()).tree = true;
+		}
+		
 	}
 
 	//returns true if all peasants are dead, else return false
@@ -403,9 +414,9 @@ public class ProbAgent extends Agent {
 		
 		Vector2D spaceLoc = space.pos; 
 		
-		/*if (numTowers > 0)
-			return (numTowersWithRadius/numTowers) * 10 * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
-		else*/
+		if (numTowers > 0)
+			return (numTowersWithRadius * numTowers);// * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
+		else
 			return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
 		
 				
