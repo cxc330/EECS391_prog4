@@ -21,6 +21,7 @@ public class ProbAgent extends Agent {
 	private List<Integer> peasantID = new ArrayList<Integer>();
 	private List<Integer> townHallIds;
 	int waitCounter = 0;
+	static int towerRadius = 4;
 	
 	/*
 	 * Variables used for searching
@@ -194,17 +195,28 @@ public class ProbAgent extends Agent {
 	}
 
 	private void updateTowers(Space move) {
-		for(int i = 0; i < towers.size(); i++)
+		
+		ArrayList<Space> tempList = new ArrayList<Space>();
+		
+		for (Space tower : towers)
 		{
-			if(towers.get(i).equals(move))
+			Vector2D towerLoc = tower.pos;
+			Vector2D moveLoc = move.pos;
+			
+			int distance = DistanceMetrics.chebyshevDistance(towerLoc.x, towerLoc.y, moveLoc.x, moveLoc.y);
+			
+			if (distance <= towerRadius)
 			{
-				towers.remove(i);
-			}
+				tempList.add(tower);
+			}				
 		}
+		
+		towers.clear();
+		towers.addAll(tempList);
 	}
 
 	private void addTowers(Space move) {
-		towers.add(move);
+		//towers.add(move);
 	}
 
 	//This checks to see if the peasant has been hit and returns true for hit and false for no hit.
