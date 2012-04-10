@@ -97,6 +97,7 @@ public class ProbAgent extends Agent {
 						hitList.add(move);
 						actions.put(currentPeasant.getID(), makeMove(move.parent));
 						addTowers(move);
+						move.visited = true;
 					}
 					else //add node to safe list
 					{
@@ -146,6 +147,14 @@ public class ProbAgent extends Agent {
 					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 				}
 				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+				
+				Space temp = hitList.get(hitList.size() -1).parent;
+				
+				while (temp.parent != null)
+				{
+					returnNodes.push(temp);
+					temp = temp.parent;
+				}
 			}
 			else
 			{
@@ -201,6 +210,16 @@ public class ProbAgent extends Agent {
 	 */
 	private Space getMove() 
 	{
+		if (returnNodes.size() > 0)
+		{
+			if (currentPeasant.getXPosition() == returnNodes.peek().pos.x && currentPeasant.getYPosition() == returnNodes.peek().pos.y )
+			{
+				System.out.println("moving towards previous peasant");
+				returnNodes.pop();
+			}
+			if (returnNodes.size() > 0)
+				return returnNodes.peek();
+		}
 		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant)); //get all neighbors then parse out all ready visited neighbors
 		
 		if (containsGold(neighbors)) //Checks for a gold node, if found, that means no more moves to check
