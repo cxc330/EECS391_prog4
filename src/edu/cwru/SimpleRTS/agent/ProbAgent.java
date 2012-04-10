@@ -30,6 +30,7 @@ public class ProbAgent extends Agent {
 	int peasantHealth = -1;
 	UnitView currentPeasant;
 	StateView publicState = null;
+	Stack<Space> returnNodes = new Stack<Space>();
 	
 	public ProbAgent(int playernum, String[] args) 
 	{
@@ -200,6 +201,13 @@ public class ProbAgent extends Agent {
 	 */
 	private Space getMove() 
 	{
+		if (returnNodes.size() > 0)
+		{
+			if (currentPeasant.getXPosition() == returnNodes.peek().pos.x && currentPeasant.getYPosition() == returnNodes.peek().pos.y)
+				returnNodes.pop();
+			
+			return returnNodes.peek();
+		}
 		ArrayList<Space> neighbors = getNeighbors(currentPeasant); //get all neighbors
 		neighbors = checkVisited(neighbors); //parse out all ready visited neighbors
 		
@@ -219,6 +227,24 @@ public class ProbAgent extends Agent {
 			}
 		}
 		
+		Space temp = lowestProbSpace;
+		Space temp2 = spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition());
+		ArrayList<Space> queue = new ArrayList<Space>();
+		while (temp.parent != null)
+		{
+			returnNodes.push(temp);
+			temp = temp.parent;
+		}
+		while (temp2.parent != null)
+		{
+			queue.add(temp2);
+			temp2 = temp2.parent;
+		}
+		
+		for (int x = queue.size() -1; x >= 0; x--)
+		{
+			returnNodes.add(queue.get(x));
+		}
 		return lowestProbSpace;
 	}
 
@@ -368,8 +394,10 @@ public class ProbAgent extends Agent {
 						spaces.get(tempX).add(new Space(location));
 					}
 				}
-				if (spaces.get(tempX).get(tempY).parent == null)
+				if (spaces.get(tempX).get(tempY).parent == null && spaces.get(tempX).get(tempY).visited == false)
+				{
 					spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
+				}
 				neighbors.add(spaces.get(tempX).get(tempY));
 			}
 		}		

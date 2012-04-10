@@ -10,4 +10,9 @@ public class Vector2D {
 	
 	public Integer x;
 	public Integer y;
+	
+	public String toString()
+	{
+		return "("  + x + ", " + y + ")"; 
+	}
 }
