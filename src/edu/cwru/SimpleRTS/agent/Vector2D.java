@@ -15,4 +15,9 @@ public class Vector2D {
 	{
 		return "("  + x + ", " + y + ")"; 
 	}
+	
+	public boolean equals(Vector2D v)
+	{
+		return (v.x == x && v.y == y);
+	}
 }

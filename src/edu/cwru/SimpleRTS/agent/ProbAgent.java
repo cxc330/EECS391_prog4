@@ -26,6 +26,7 @@ public class ProbAgent extends Agent {
 	ArrayList<Space> hitList = new ArrayList<Space>(); //List of Spaces that resulted in an attack from tower(s)
 	ArrayList<Space> path = new ArrayList<Space>(); //List of Spaces that is the path
 	ArrayList<ArrayList<Space>> spaces = new ArrayList<ArrayList<Space>>(); //2D array for spaces
+	ArrayList<Space> towers = new ArrayList<Space>(); //List of Spaces that has towers
 	Space move = new Space();
 	int peasantHealth = -1;
 	UnitView currentPeasant;
@@ -173,13 +174,17 @@ public class ProbAgent extends Agent {
 	}
 
 	private void updateTowers(Space move) {
-		// TODO Auto-generated method stub
-		
+		for(int i = 0; i < towers.size(); i++)
+		{
+			if(towers.get(i).equals(move))
+			{
+				towers.remove(i);
+			}
+		}
 	}
 
 	private void addTowers(Space move) {
-		// TODO Auto-generated method stub
-		
+		towers.add(move);
 	}
 
 	//This checks to see if the peasant has been hit and returns true for hit and false for no hit.
@@ -256,7 +261,7 @@ public class ProbAgent extends Agent {
 		Vector2D spaceLoc = space.pos;
 		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
 		
-		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 0);		
+		return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 100, 100);		
 	}
 
 	//returns the lowest space with the lowest probability, lowest probability being most optimal

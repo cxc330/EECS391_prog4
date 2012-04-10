@@ -15,4 +15,8 @@ public class Space {
 	boolean visited = false;
 	boolean gold = false;
 
+	public boolean equals(Space s)
+	{
+		return s.pos.equals(pos);
+	}
 }
