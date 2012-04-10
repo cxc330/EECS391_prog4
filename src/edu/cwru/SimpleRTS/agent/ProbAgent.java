@@ -17,31 +17,41 @@ public class ProbAgent extends Agent {
 	static String peasant = "Peasant";
 	static String gather = "gather";
 	static String deposit = "deposit";
-	private List<Integer> peasantID = new ArrayList<Integer>();
-	private List<Integer> townHallIds;
-	int waitCounter = 0;
 	static int towerRadius = 4;
 	
+	int waitCounter = 0;
+	int costOfPeasant;
+	int peasantHealth = -1;
+	int mapSize = 100;
+	private List<Integer> peasantID = new ArrayList<Integer>();
+	private List<Integer> townHallIds;
+	
 	//Variables used for searching
+	ArrayList<ArrayList<Space>> Map_Representation = new ArrayList<ArrayList<Space>>(); //2D array for spaces
 	ArrayList<Space> openList = new ArrayList<Space>();
 	ArrayList<Space> hitList = new ArrayList<Space>(); //List of Spaces that resulted in an attack from tower(s)
 	ArrayList<Space> path = new ArrayList<Space>(); //List of Spaces that is the path
-	ArrayList<ArrayList<Space>> spaces = new ArrayList<ArrayList<Space>>(); //2D array for spaces
 	ArrayList<Space> towers = new ArrayList<Space>(); //List of Spaces that has towers
 	ArrayList<Space> visitedSpaces = new ArrayList<Space>();
+	
 	Space move = new Space();
-	int peasantHealth = -1;
 	UnitView currentPeasant;
 	StateView publicState = null;
 	Stack<Space> returnNodes = new Stack<Space>();
-	int costOfPeasant;
 	
 	//Constructor
 	public ProbAgent(int playernum, String[] args) 
 	{
 		super(playernum);
+		for(int i = 0; i < mapSize; i++)
+		{
+			Map_Representation.add(new ArrayList<Space>());
+			for(int j = 0; j < mapSize; j++)
+				Map_Representation.get(i).add(new Space(new Vector2D(i,j)));
+		}
 	}
 
+	//Below is the initialStep and setup for our agent
 	@Override
 	public Map<Integer, Action> initialStep(StateView state) 
 	{	
@@ -50,19 +60,8 @@ public class ProbAgent extends Agent {
 		if(peasantID.size() > 0)
 		{	
 			currentPeasant = state.getUnit(peasantID.get(0));
-			int size = spaces.size();
-			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //Making the 2D arraylist to hold the Spaces
-			{
-				spaces.add(new ArrayList<Space>());
-			}
-			size = spaces.get(currentPeasant.getXPosition()).size();
-			for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
-			{
-				Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
-				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
-			}
-			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-			costOfPeasant =  state.getUnit(peasantID.get(0)).getTemplateView().getGoldCost();
+			costOfPeasant = currentPeasant.getTemplateView().getGoldCost();
+			Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
 			return middleStep(state);
 		}
 		else
@@ -72,6 +71,7 @@ public class ProbAgent extends Agent {
 		}
 	}
 	
+	//Below is the middleStep function where the majority of the logic works
 	@Override
 	public Map<Integer, Action> middleStep(StateView state) 
 	{		
@@ -79,17 +79,15 @@ public class ProbAgent extends Agent {
 		publicState = state;
 		
 		if (AllPeasantsAreDead(actions)) //check to see if peasants are dead
-		{
 			return actions;
-		}
 		
 		currentPeasant = state.getUnit(peasantID.get(0));
 		
-		if (path.size() <= 0) //main loop
+		if (path.size() <= 0) //there is no path
 		{
-			if (move == null) //get and make a move
+			if (move == null) //if no next move
 			{
-				System.out.println("making move from location: " + currentPeasant.getXPosition() + ", " + currentPeasant.getYPosition());
+				System.out.println("Moving from location: " + currentPeasant.getXPosition() + ", " + currentPeasant.getYPosition());
 				move = getMove();
 				actions.put(currentPeasant.getID(), makeMove(move));
 			}
@@ -156,26 +154,17 @@ public class ProbAgent extends Agent {
 				if (peasantID.size() <= 0)
 				{
 					System.out.println("No more peasants.");
-					
-						buildPeasant(actions);
-						return true;
+					buildPeasant(actions);
+					return true;
 				}
-				currentPeasant = publicState.getUnit(peasantID.get(0));
-				int size = spaces.size();
-				for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
-				{
-					spaces.add(new ArrayList<Space>());
-				}
-				size = spaces.get(currentPeasant.getXPosition()).size();
-				for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
-				{
-					Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
-					spaces.get(currentPeasant.getXPosition()).add(new Space(location));
-				}
-				spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-				visitedSpaces.add(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
-				Space temp = hitList.get(hitList.size() -1).parent;
 				
+				//Getting the next peasant, marking its space as visited
+				currentPeasant = publicState.getUnit(peasantID.get(0));
+				Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+				visitedSpaces.add(Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
+				Space temp = hitList.get(hitList.size() - 1).parent;
+				
+				//Make the path to get from the new peasant to the space before the previous peasant died
 				while (temp.parent != null)
 				{
 					returnNodes.push(temp);
@@ -190,6 +179,7 @@ public class ProbAgent extends Agent {
 		return false;
 	}
 
+	//This builds a peasant
 	private boolean buildPeasant( Map<Integer, Action> actions) {
 		
 		if (publicState.getResourceAmount(0, ResourceType.GOLD) >= costOfPeasant)
@@ -208,7 +198,6 @@ public class ProbAgent extends Agent {
 	
 	private void traverse(ArrayList<Space> path) {
 		// TODO traverse to next node
-		
 	}
 
 	private void updateTowers(Space move) {
@@ -371,12 +360,14 @@ public class ProbAgent extends Agent {
 				return returnNodes.peek();
 		}
 		
-		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant)); //get all neighbors then parse out all ready visited neighbors
+		//get all neighbors then remove visited neighbors
+		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
 		
-		if (containsGold(neighbors)) //Checks for a gold node, if found, that means no more moves to check
+		//If gold mine is a neighbor, we've reached our goal, return null for no move
+		if (containsGold(neighbors))
 			return null;
 		
-		addToOpenList(neighbors); //add the valid neighbors to the Open List
+		addToOpenList(neighbors); //add the valid neighbors to the openlist
 		
 		Space lowestProbSpace = getLowestProb(openList);
 		int lowestProb = getProb(lowestProbSpace, openList);
@@ -498,13 +489,13 @@ public class ProbAgent extends Agent {
 		{
 			switch(j)
 			{
-				case 1: //x + 1, y
-					tempX = xPlusOne;
-					tempY = y;
-					break;
 				case 0: //x + 1, y + 1
 					tempX = xPlusOne;
 					tempY = yPlusOne;
+					break;
+				case 1: //x + 1, y
+					tempX = xPlusOne;
+					tempY = y;
 					break;
 				case 2: //x + 1, y - 1
 					tempX = xPlusOne;
@@ -534,50 +525,32 @@ public class ProbAgent extends Agent {
 					break;
 			}
 
-			if(checkValidNeighbor(tempX, tempY)) //check if it's a valid space
+			if(isValidNeighbor(tempX, tempY)) //check if it's a valid space
 			{			
 				System.out.println("VALIDtemp: " + tempX + ", " + tempY);
-				try {
-					spaces.get(tempX);
-				}
-				catch (Exception e) {
-					int size = spaces.size();
-					
-					for (int j1 = 0; j1 <= tempX - size; j1++)
-					{
-						spaces.add(new ArrayList<Space>());
-					}
-				}
-				try { 
-					spaces.get(tempX).get(tempY);
-				} 
-				catch (Exception e) {
-					int size = spaces.get(tempX).size();
-					for (int j1 = 0; j1 <= tempY - size; j1++) {
-						Vector2D location = new Vector2D(tempX, size + j1);
-						spaces.get(tempX).add(new Space(location));
-					}
-				}
 				
-				if (spaces.get(tempX).get(tempY).parent == null && spaces.get(tempX).get(tempY).visited == false)
+				if (Map_Representation.get(tempX).get(tempY).parent == null && Map_Representation.get(tempX).get(tempY).visited == false)
 				{
-					spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
+					Map_Representation.get(tempX).get(tempY).parent = Map_Representation.get(x).get(y);
 				}
 				
-				neighbors.add(spaces.get(tempX).get(tempY));
+				neighbors.add(Map_Representation.get(tempX).get(tempY));
 			}
 			else
 			{
 				System.out.println("temp: " + tempX + ", " + tempY);
 			}
 		}
+		
+		//Test Printing of valid neighbors returned
 		for(int i = 0; i < neighbors.size(); i++)
 			System.out.println("Neighbor " + i + ": " + neighbors.get(i).pos.x + ", " + neighbors.get(i).pos.y);
+		
 		return neighbors;
 	}
 	
 	//This checks to see if a neighbor is a valid neighbor
-	private boolean checkValidNeighbor(Integer x, Integer y)
+	private boolean isValidNeighbor(Integer x, Integer y)
 	{	
 		boolean NeighborIsUnit = publicState.isUnitAt(x, y);
 		boolean NeighborIsValid = publicState.inBounds(x, y);
