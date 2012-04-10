@@ -155,8 +155,7 @@ public class ProbAgent extends Agent {
 	}
 
 	@Override
-	public void terminalStep(StateView state) {
-	}
+	public void terminalStep(StateView state) {}
 	
 	private void traverse(ArrayList<Space> path) {
 		// TODO traverse to next node
@@ -173,9 +172,10 @@ public class ProbAgent extends Agent {
 		
 	}
 
+	//This checks to see if the peasant has been hit and returns true for hit and false for no hit.
 	private boolean checkHit() {
 		
-		if (publicState.getUnit(currentPeasant.getID()) == null)
+		if (publicState.getUnit(currentPeasant.getID()) == null) //if the peasant has been removed, it has been killed
 		{
 			peasantID.remove(0);
 			System.out.println(peasantID.size());
@@ -187,9 +187,9 @@ public class ProbAgent extends Agent {
 		return false;
 	}
 
+	//This makes the peasant move to the position we've determined to be most optimal
 	private Action makeMove(Space move) {
-		
-		peasantHealth = currentPeasant.getHP();
+		peasantHealth = currentPeasant.getHP(); //storing the health before the move
 		System.out.printf("moving to (%s, %s) with health %s\n", move.pos.x, move.pos.y, peasantHealth);
 		return Action.createCompoundMove(currentPeasant.getID(), move.pos.x, move.pos.y);
 	}
@@ -200,13 +200,12 @@ public class ProbAgent extends Agent {
 	 */
 	private Space getMove() 
 	{
-		ArrayList<Space> neighbors = getNeighbors(currentPeasant); //get all neighbors
-		neighbors = checkVisited(neighbors); //parse out all ready visited neighbors
+		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant)); //get all neighbors then parse out all ready visited neighbors
 		
 		if (containsGold(neighbors)) //Checks for a gold node, if found, that means no more moves to check
 			return null;
 		
-		addToOL(neighbors); //add the valid neighbors to the OL
+		addToOpenList(neighbors); //add the valid neighbors to the Open List
 		
 		Space lowestProbSpace = getLowestProb(openList);
 		int lowestProb = getProb(lowestProbSpace);
@@ -235,10 +234,10 @@ public class ProbAgent extends Agent {
 		
 		Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
 		Vector2D spaceLoc = space.pos;
-		
 		return DistanceMetrics.chebyshevDistance(peasantLoc.x, peasantLoc.y, 100, 0);		
 	}
 
+	//returns the lowest space with the lowest probability, lowest probability being most optimal
 	private Space getLowestProb(ArrayList<Space> spaces) {
 		
 		int lowestProb = Integer.MAX_VALUE;
@@ -256,7 +255,8 @@ public class ProbAgent extends Agent {
 		return lowestSpace;
 	}
 
-	private void addToOL(ArrayList<Space> spaces) {
+	//add the neighbors found to the OpenList
+	private void addToOpenList(ArrayList<Space> spaces) {
 		
 		for (Space space : spaces)
 		{
@@ -268,6 +268,7 @@ public class ProbAgent extends Agent {
 		
 	}
 
+	//returns true if one of the neighbors is the goldmine, else false
 	private boolean containsGold(ArrayList<Space> neighbors) {
 		
 		for (Space space : neighbors)
@@ -275,21 +276,22 @@ public class ProbAgent extends Agent {
 			if (space.gold)
 				return true;
 		}
-		
 		return false;
 	}
 
-	private ArrayList<Space> checkVisited(ArrayList<Space> neighbors) {
+	//this returns the list of the neighbors that have not been visited
+	private ArrayList<Space> findUnvisitedNeighbors(ArrayList<Space> neighbors) {
 		
-		ArrayList<Space> returnList = new ArrayList<Space>();
+		ArrayList<Space> unvisitedNeighbors = new ArrayList<Space>();
 		for (Space space : neighbors)
 		{
 			if (!space.visited)
-				returnList.add(space);
+				unvisitedNeighbors.add(space);
 		}
-		return returnList;
+		return unvisitedNeighbors;
 	}
 
+	//This gets all of the neighbors of the peasant's current location.
 	private ArrayList<Space> getNeighbors(UnitView peasant) {
 
 		ArrayList<Space> neighbors = new ArrayList<Space>();
@@ -376,16 +378,12 @@ public class ProbAgent extends Agent {
 		return neighbors;
 	}
 	
+	//This checks to see if a neighbor is a valid neighbor
 	private boolean checkValidNeighbor(Integer x, Integer y)
-	{
-		boolean isUnit = false;
-		boolean isResource = false;
-		boolean isValid = false;
-		
-		isUnit = publicState.isUnitAt(x, y);
-		isValid = publicState.inBounds(x, y);
-		isResource = publicState.isResourceAt(x, y);
-		
+	{	
+		boolean isUnit = publicState.isUnitAt(x, y);
+		boolean isValid = publicState.inBounds(x, y);
+		boolean isResource = publicState.isResourceAt(x, y);
 		return ((!isUnit && !isResource) && isValid);
 	}
 	
