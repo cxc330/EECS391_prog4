@@ -360,7 +360,7 @@ public class ProbAgent extends Agent {
 				return returnNodes.peek();
 		}
 		
-		//get all neighbors then remove visited neighbors
+		//get all unvisited valid neighbors
 		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant));
 		
 		//If gold mine is a neighbor, we've reached our goal, return null for no move
@@ -392,7 +392,7 @@ public class ProbAgent extends Agent {
 		return null;
 	}
 
-	private int getProb(Space space, ArrayList<Space> spaces) {
+	private int getProb(Space space, ArrayList<Space> Map_Representation) {
 		
 		//Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
 		
