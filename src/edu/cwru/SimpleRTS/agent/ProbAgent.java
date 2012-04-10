@@ -403,9 +403,9 @@ public class ProbAgent extends Agent {
 		
 		Vector2D spaceLoc = space.pos; 
 		
-		/*if (numTowers > 0)
+		if (numTowers > 0)
 			return (numTowersWithRadius/numTowers) * 10 * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
-		else*/
+		else
 			return DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
 		
 				
