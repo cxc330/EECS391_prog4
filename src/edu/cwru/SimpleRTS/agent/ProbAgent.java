@@ -1,7 +1,6 @@
 package edu.cwru.SimpleRTS.agent;
 
 import java.util.*;
-
 import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
 import edu.cwru.SimpleRTS.model.Template.TemplateView;
@@ -23,9 +22,7 @@ public class ProbAgent extends Agent {
 	int waitCounter = 0;
 	static int towerRadius = 4;
 	
-	/*
-	 * Variables used for searching
-	 */
+	//Variables used for searching
 	ArrayList<Space> openList = new ArrayList<Space>();
 	ArrayList<Space> hitList = new ArrayList<Space>(); //List of Spaces that resulted in an attack from tower(s)
 	ArrayList<Space> path = new ArrayList<Space>(); //List of Spaces that is the path
@@ -39,6 +36,7 @@ public class ProbAgent extends Agent {
 	Stack<Space> returnNodes = new Stack<Space>();
 	int costOfPeasant;
 	
+	//Constructor
 	public ProbAgent(int playernum, String[] args) 
 	{
 		super(playernum);
@@ -47,12 +45,13 @@ public class ProbAgent extends Agent {
 	@Override
 	public Map<Integer, Action> initialStep(StateView state) 
 	{	
-		peasantID = findUnitType(state.getAllUnitIds(), state, peasant);
+		peasantID = findUnitType(state.getAllUnitIds(), state, peasant); //getting all peasants
+		
 		if(peasantID.size() > 0)
 		{	
 			currentPeasant = state.getUnit(peasantID.get(0));
 			int size = spaces.size();
-			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //instantiating the 2d arraylist
+			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++) //Making the 2D arraylist to hold the Spaces
 			{
 				spaces.add(new ArrayList<Space>());
 			}
@@ -63,7 +62,6 @@ public class ProbAgent extends Agent {
 				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
 			}
 			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-			//(spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
 			costOfPeasant =  state.getUnit(peasantID.get(0)).getTemplateView().getGoldCost();
 			return middleStep(state);
 		}
@@ -91,7 +89,7 @@ public class ProbAgent extends Agent {
 		{
 			if (move == null) //get and make a move
 			{
-				System.out.println("making move");
+				System.out.println("making move from location: " + currentPeasant.getXPosition() + ", " + currentPeasant.getYPosition());
 				move = getMove();
 				actions.put(currentPeasant.getID(), makeMove(move));
 			}
@@ -100,7 +98,7 @@ public class ProbAgent extends Agent {
 				if (waitCounter == 1)
 				{
 					checkTrees(move);
-					System.out.println("checking hit");
+					System.out.print("checking hit: ");
 					if (checkHit()) //if we were hit
 					{
 						System.out.println("hit");
@@ -119,8 +117,8 @@ public class ProbAgent extends Agent {
 						{
 							visitedSpaces.add(move);
 						}
-						updateTowers(move);		
-						move = new Space();
+						updateTowers(move);
+						//move = new Space();
 						move = null;
 					}
 					waitCounter = 0;
@@ -143,7 +141,7 @@ public class ProbAgent extends Agent {
 		
 		for (Integer resource : resources)
 		{
-			spaces.get(publicState.getResourceNode(resource).getXPosition()).get(publicState.getResourceNode(resource).getYPosition()).tree = true;
+			//spaces.get(publicState.getResourceNode(resource).getXPosition()).get(publicState.getResourceNode(resource).getYPosition()).tree = true;
 		}
 		
 	}
@@ -245,6 +243,7 @@ public class ProbAgent extends Agent {
 		
 		towers.clear();
 		towers.addAll(tempList);
+		System.out.println(towers.toString());
 	}
 
 	private void addTowers(Space move) {
@@ -275,6 +274,8 @@ public class ProbAgent extends Agent {
 				}
 			}
 		}
+
+		System.out.println(towers.toString());
 	}
 	
 	private boolean withinTowerRadius(Space move, Space tower)
@@ -359,7 +360,7 @@ public class ProbAgent extends Agent {
 	 */
 	private Space getMove() 
 	{
-		if (returnNodes.size() > 0)
+		if (returnNodes.size() > 0) //If a peasant die, this makes the next peasant traverse the safe path so far
 		{
 			if (currentPeasant.getXPosition() == returnNodes.peek().pos.x && currentPeasant.getYPosition() == returnNodes.peek().pos.y )
 			{
@@ -369,6 +370,7 @@ public class ProbAgent extends Agent {
 			if (returnNodes.size() > 0)
 				return returnNodes.peek();
 		}
+		
 		ArrayList<Space> neighbors = findUnvisitedNeighbors(getNeighbors(currentPeasant)); //get all neighbors then parse out all ready visited neighbors
 		
 		if (containsGold(neighbors)) //Checks for a gold node, if found, that means no more moves to check
@@ -431,6 +433,7 @@ public class ProbAgent extends Agent {
 		for (Space space : spaces)
 		{	
 			tempProb = getProb(space, spaces);
+			System.out.println("For space (" + space.pos.x + ", " + space.pos.y + "), tempProb: " + tempProb);
 			if (tempProb <= lowestProb)
 			{
 				lowestSpace = space;
@@ -532,11 +535,12 @@ public class ProbAgent extends Agent {
 			}
 
 			if(checkValidNeighbor(tempX, tempY)) //check if it's a valid space
-			{				
+			{			
+				System.out.println("VALIDtemp: " + tempX + ", " + tempY);
 				try {
 					spaces.get(tempX);
-						
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					int size = spaces.size();
 					
 					for (int j1 = 0; j1 <= tempX - size; j1++)
@@ -544,35 +548,41 @@ public class ProbAgent extends Agent {
 						spaces.add(new ArrayList<Space>());
 					}
 				}
-				try {
+				try { 
 					spaces.get(tempX).get(tempY);
-						
-				} catch (Exception e) {
+				} 
+				catch (Exception e) {
 					int size = spaces.get(tempX).size();
-					
-					for (int j1 = 0; j1 <= tempY - size; j1++)
-					{
+					for (int j1 = 0; j1 <= tempY - size; j1++) {
 						Vector2D location = new Vector2D(tempX, size + j1);
 						spaces.get(tempX).add(new Space(location));
 					}
 				}
+				
 				if (spaces.get(tempX).get(tempY).parent == null && spaces.get(tempX).get(tempY).visited == false)
 				{
 					spaces.get(tempX).get(tempY).parent = spaces.get(x).get(y);
 				}
+				
 				neighbors.add(spaces.get(tempX).get(tempY));
 			}
-		}		
+			else
+			{
+				System.out.println("temp: " + tempX + ", " + tempY);
+			}
+		}
+		for(int i = 0; i < neighbors.size(); i++)
+			System.out.println("Neighbor " + i + ": " + neighbors.get(i).pos.x + ", " + neighbors.get(i).pos.y);
 		return neighbors;
 	}
 	
 	//This checks to see if a neighbor is a valid neighbor
 	private boolean checkValidNeighbor(Integer x, Integer y)
 	{	
-		boolean isUnit = publicState.isUnitAt(x, y);
-		boolean isValid = publicState.inBounds(x, y);
-		boolean isResource = publicState.isResourceAt(x, y);
-		return ((!isUnit && !isResource) && isValid);
+		boolean NeighborIsUnit = publicState.isUnitAt(x, y);
+		boolean NeighborIsValid = publicState.inBounds(x, y);
+		boolean NeighborIsResource = publicState.isResourceAt(x, y);
+		return ((!NeighborIsUnit && !NeighborIsResource) && NeighborIsValid);
 	}
 	
 	public List<Integer> findUnitType(List<Integer> ids, StateView state, String name)	{
