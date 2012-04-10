@@ -61,7 +61,7 @@ public class ProbAgent extends Agent {
 		{	
 			currentPeasant = state.getUnit(peasantID.get(0));
 			costOfPeasant = currentPeasant.getTemplateView().getGoldCost();
-			Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			getFromMap(new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition())).visited = true;
 			return middleStep(state);
 		}
 		else
@@ -143,6 +143,14 @@ public class ProbAgent extends Agent {
 		}
 		
 	}
+	
+	Space getFromMap(Vector2D location)
+	{
+		int x = location.x;
+		int y = location.y;
+		
+		return Map_Representation.get(x).get(y);
+	}
 
 	//returns true if all peasants are dead, else return false
 	private boolean AllPeasantsAreDead(Map<Integer, Action> actions) {
@@ -160,8 +168,8 @@ public class ProbAgent extends Agent {
 				
 				//Getting the next peasant, marking its space as visited
 				currentPeasant = publicState.getUnit(peasantID.get(0));
-				Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-				visitedSpaces.add(Map_Representation.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()));
+				getFromMap(new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition())).visited = true;
+				visitedSpaces.add(getFromMap(new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition())));
 				Space temp = hitList.get(hitList.size() - 1).parent;
 				
 				//Make the path to get from the new peasant to the space before the previous peasant died
@@ -370,17 +378,24 @@ public class ProbAgent extends Agent {
 		addToOpenList(neighbors); //add the valid neighbors to the openlist
 		
 		Space lowestProbSpace = getLowestProb(openList);
-		int lowestProb = getProb(lowestProbSpace, openList);
+		int lowestProb = Integer.MAX_VALUE;
 		
 		for (Space neighbor : neighbors) //check if one of our neighbors is the best choice
 		{
 			if (getProb(neighbor, neighbors) <= lowestProb) //if it's better or the same as best choice
 			{
-				return getFromOL(neighbor); //return it
+				lowestProb = getProb(neighbor, neighbors);
+				lowestProbSpace = neighbor;
 			}
 		}
 		
-		return lowestProbSpace;
+		if(neighbors.size() == 0)
+		{
+			Vector2D location = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+			return getFromMap(location).parent;
+		}
+		
+		return getFromOL(lowestProbSpace);
 	}
 
 	private Space getFromOL(Space neighbor) {
@@ -528,10 +543,11 @@ public class ProbAgent extends Agent {
 			if(isValidNeighbor(tempX, tempY)) //check if it's a valid space
 			{			
 				System.out.println("VALIDtemp: " + tempX + ", " + tempY);
+				Vector2D location = new Vector2D(tempX, tempY);
 				
-				if (Map_Representation.get(tempX).get(tempY).parent == null && Map_Representation.get(tempX).get(tempY).visited == false)
+				if (getFromMap(location).parent == null && getFromMap(location).visited == false)
 				{
-					Map_Representation.get(tempX).get(tempY).parent = Map_Representation.get(x).get(y);
+					getFromMap(location).parent = getFromMap(new Vector2D(x,y));
 				}
 				
 				neighbors.add(Map_Representation.get(tempX).get(tempY));
