@@ -219,24 +219,6 @@ public class ProbAgent extends Agent {
 			}
 		}
 		
-		Space temp = lowestProbSpace;
-		Space temp2 = spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition());
-		ArrayList<Space> queue = new ArrayList<Space>();
-		while (temp.parent != null)
-		{
-			returnNodes.push(temp);
-			temp = temp.parent;
-		}
-		while (temp2.parent != null)
-		{
-			queue.add(temp2);
-			temp2 = temp2.parent;
-		}
-		
-		for (int x = queue.size() -1; x >= 0; x--)
-		{
-			returnNodes.add(queue.get(x));
-		}
 		return lowestProbSpace;
 	}
 
