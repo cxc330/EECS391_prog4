@@ -231,7 +231,7 @@ public class ProbAgent extends Agent {
 		return null;
 	}
 
-	private int getProb(Space space) {
+	private int getProb(Space space, ArrayList<Space> spaces) {
 		
 		Vector2D peasantLoc = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
 		Vector2D spaceLoc = space.pos;
@@ -243,13 +243,14 @@ public class ProbAgent extends Agent {
 		
 		int lowestProb = Integer.MAX_VALUE;
 		Space lowestSpace = null;
-		
+		int tempProb = -1;
 		for (Space space : spaces)
-		{
-			if (getProb(space) <= lowestProb)
+		{	
+			tempProb = getProb(space, spaces);
+			if (tempProb <= lowestProb)
 			{
 				lowestSpace = space;
-				lowestProb = getProb(lowestSpace);
+				lowestProb = tempProb;
 			}
 		}
 		
