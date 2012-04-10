@@ -378,17 +378,24 @@ public class ProbAgent extends Agent {
 		addToOpenList(neighbors); //add the valid neighbors to the openlist
 		
 		Space lowestProbSpace = getLowestProb(openList);
-		int lowestProb = getProb(lowestProbSpace, openList);
+		int lowestProb = Integer.MAX_VALUE;
 		
 		for (Space neighbor : neighbors) //check if one of our neighbors is the best choice
 		{
 			if (getProb(neighbor, neighbors) <= lowestProb) //if it's better or the same as best choice
 			{
-				return getFromOL(neighbor); //return it
+				lowestProb = getProb(neighbor, neighbors);
+				lowestProbSpace = neighbor;
 			}
 		}
 		
-		return lowestProbSpace;
+		if(neighbors.size() == 0)
+		{
+			Vector2D location = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+			return getFromMap(location).parent;
+		}
+		
+		return getFromOL(lowestProbSpace);
 	}
 
 	private Space getFromOL(Space neighbor) {
@@ -540,10 +547,10 @@ public class ProbAgent extends Agent {
 				
 				if (getFromMap(location).parent == null && getFromMap(location).visited == false)
 				{
-					getFromMap(location).parent = getFromMap(location);
+					getFromMap(location).parent = getFromMap(new Vector2D(x,y));
 				}
 				
-				neighbors.add(getFromMap(location));
+				neighbors.add(Map_Representation.get(tempX).get(tempY));
 			}
 			else
 			{
