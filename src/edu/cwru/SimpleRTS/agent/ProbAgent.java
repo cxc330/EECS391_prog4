@@ -23,8 +23,8 @@ public class ProbAgent extends Agent {
 	 * Variables used for searching
 	 */
 	ArrayList<Space> openList = new ArrayList<Space>();
-	ArrayList<Space> hitList = new ArrayList<Space>();
-	ArrayList<Space> path = new ArrayList<Space>();
+	ArrayList<Space> hitList = new ArrayList<Space>(); //List of Spaces that resulted in an attack from tower(s)
+	ArrayList<Space> path = new ArrayList<Space>(); //List of Spaces that is the path
 	ArrayList<ArrayList<Space>> spaces = new ArrayList<ArrayList<Space>>(); //2D array for spaces
 	Space move = new Space();
 	int peasantHealth = -1;
@@ -129,7 +129,7 @@ public class ProbAgent extends Agent {
 				peasantID.remove(0);
 				if (peasantID.size() <= 0)
 				{
-					System.out.println("No more peasants");
+					System.out.println("No more peasants.");
 					return true;
 				}
 				currentPeasant = publicState.getUnit(peasantID.get(0));
@@ -203,10 +203,9 @@ public class ProbAgent extends Agent {
 		ArrayList<Space> neighbors = getNeighbors(currentPeasant); //get all neighbors
 		neighbors = checkVisited(neighbors); //parse out all ready visited neighbors
 		
-		if (containsGold(neighbors)) //make sure we didn't return a gold node
+		if (containsGold(neighbors)) //Checks for a gold node, if found, that means no more moves to check
 			return null;
 		
-
 		addToOL(neighbors); //add the valid neighbors to the OL
 		
 		Space lowestProbSpace = getLowestProb(openList);
