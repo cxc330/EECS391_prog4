@@ -39,20 +39,28 @@ public class ProbAgent extends Agent {
 	public Map<Integer, Action> initialStep(StateView state) 
 	{	
 		peasantID = findUnitType(state.getAllUnitIds(), state, peasant);
-		currentPeasant = state.getUnit(peasantID.get(0));
-		int size = spaces.size();
-		for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
-		{
-			spaces.add(new ArrayList<Space>());
+		if(peasantID.size() > 0)
+		{	
+			currentPeasant = state.getUnit(peasantID.get(0));
+			int size = spaces.size();
+			for (int j1 = 0; j1 <= currentPeasant.getXPosition() - size; j1++)
+			{
+				spaces.add(new ArrayList<Space>());
+			}
+			size = spaces.get(currentPeasant.getXPosition()).size();
+			for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
+			{
+				Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
+				spaces.get(currentPeasant.getXPosition()).add(new Space(location));
+			}
+			spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
+			return middleStep(state);
 		}
-		size = spaces.get(currentPeasant.getXPosition()).size();
-		for (int j1 = 0; j1 <= currentPeasant.getYPosition() - size; j1++)
+		else
 		{
-			Vector2D location = new Vector2D(currentPeasant.getXPosition(), spaces.size() + j1);
-			spaces.get(currentPeasant.getXPosition()).add(new Space(location));
+			System.out.println("No Peasants available. Bad Setup.");
+			return new HashMap<Integer, Action>();
 		}
-		spaces.get(currentPeasant.getXPosition()).get(currentPeasant.getYPosition()).visited = true;
-		return middleStep(state);
 	}
 	
 	@Override
