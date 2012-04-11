@@ -92,7 +92,14 @@ public class ProbAgent extends Agent {
 			{
 				System.out.println("Moving from location: " + currentPeasant.getXPosition() + ", " + currentPeasant.getYPosition());
 				move = getMove();
-				actions.put(currentPeasant.getID(), makeMove(move));
+				Action action = makeMove(move);
+				if(action != null)
+					actions.put(currentPeasant.getID(), action); //moving peasant back
+				else
+				{
+					System.out.println("GOLD RETURN");
+					return new HashMap<Integer, Action>();
+				}
 			}
 			else //check if we were hit
 			{
@@ -132,6 +139,7 @@ public class ProbAgent extends Agent {
 		}
 		else
 		{
+			System.out.println("traversing");
 			traverse(path);
 		}
 		return actions;
@@ -471,7 +479,21 @@ public class ProbAgent extends Agent {
 		peasantHealth = currentPeasant.getHP(); //storing the health before the move
 		if (move == null)
 		{
-			//TODO ADD TRAVERSE CODE to path
+			Vector2D location = new Vector2D(currentPeasant.getXPosition(), currentPeasant.getYPosition());
+			
+			Space space = getFromMap(location);
+			Stack<Space> spaces = new Stack<Space>();
+			while (space.parent!=null)
+			{
+				spaces.push(space);
+				space = space.parent;
+			}
+			
+			for (Space temp : spaces)
+			{
+				path.add(temp);
+			}
+			return null;
 		}
 		System.out.printf("moving to (%s, %s) with health %s\n", move.pos.x, move.pos.y, peasantHealth);
 		return Action.createCompoundMove(currentPeasant.getID(), move.pos.x, move.pos.y);
