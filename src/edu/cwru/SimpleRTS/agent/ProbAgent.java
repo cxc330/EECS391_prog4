@@ -28,6 +28,7 @@ public class ProbAgent extends Agent {
 	int mapSize = 100;
 	private List<Integer> peasantID = new ArrayList<Integer>();
 	private List<Integer> townHallIds;
+	boolean backwards = false;
 	
 	//Variables used for searching
 	ArrayList<ArrayList<Space>> Map_Representation = new ArrayList<ArrayList<Space>>(); //2D array for spaces
@@ -41,6 +42,8 @@ public class ProbAgent extends Agent {
 	UnitView currentPeasant;
 	StateView publicState = null;
 	Stack<Space> returnNodes = new Stack<Space>();
+	
+	int traversePos = -1;
 	
 	//Constructor
 	public ProbAgent(int playernum, String[] args) 
@@ -139,8 +142,11 @@ public class ProbAgent extends Agent {
 		}
 		else
 		{
-			System.out.println("traversing");
-			traverse(path);
+			if (publicState.getResourceAmount(0, ResourceType.GOLD) < 2000)
+			{
+				actions = traverse(path);
+				System.out.println("traversing");
+			}
 		}
 		return actions;
 	}
@@ -220,19 +226,42 @@ public class ProbAgent extends Agent {
 		HashMap<Integer, Action> actions = new HashMap<Integer, Action>();
 		List<Integer> townHallIds = findUnitType(publicState.getAllUnitIds(), publicState, townHall);
 		List<Integer> goldMineIds = publicState.getResourceNodeIds(Type.GOLD_MINE);
+		currentPeasant = publicState.getUnit(currentPeasant.getID());
+		if (traversePos == -1)
+			traversePos = 0;
 		
-			for(int i = 0; i < path.size(); i++)
-			{
-				actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(path.size()-(i+1)).pos.x, path.get(path.size()-(i+1)).pos.y));
-			}
-			actions.put(currentPeasant.getID(), Action.createCompoundDeposit(currentPeasant.getID(), townHallIds.get(0)));
-			for(int i = 0; i < path.size(); i++)
-			{
-				actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(i).pos.x, path.get(i).pos.y));
-			}
+		//if at gold
+		if (traversePos == 0 && currentPeasant.getCargoAmount() <= 0)
+		{
+			System.out.println("gathering gold");
 			actions.put(currentPeasant.getID(), Action.createCompoundGather(currentPeasant.getID(), goldMineIds.get(0)));
-	
-			return actions;
+		}
+		else if(traversePos == 0)
+		{
+			backwards = false;
+			traversePos++;
+		}
+		else if (traversePos < path.size() && !backwards)
+		{
+			actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(traversePos).pos.x, path.get(traversePos).pos.y));
+			traversePos++;
+		}
+		else if (traversePos > 0 && backwards)
+		{
+			actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(traversePos).pos.x, path.get(traversePos).pos.y));
+			traversePos--;
+		}
+		else if (traversePos == path.size() && currentPeasant.getCargoAmount() > 0)
+		{
+			actions.put(currentPeasant.getID(), Action.createCompoundDeposit(currentPeasant.getID(), townHallIds.get(0)));
+			
+		}
+		else if (traversePos == path.size())
+		{
+			backwards = true;
+			traversePos--;
+		}
+		return actions;
 		
 	}
 
