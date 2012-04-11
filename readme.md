@@ -4,11 +4,36 @@ Developed By: Chien-Hung Chen and Christopher Gross
 
 Case IDs: cxc330 and cjg28
 
-Last update: 4/8/2012
+Last update: 4/10/2012
+
+Github Link: https://github.com/cxc330/EECS391_prog4
 
 In this assignment we will use probabilistic reasoning to solve a scouting/resource collection scenario in the SimpleRTS game.
 
-##1. Problem Setup
+##1. How To Run
+###Using Shell Scripts (The Easy Way)
+We have included a few shell scripts for your pleasure.
+Please run the following to run our agent:
+	./19x25.sh
+	./32x32.sh
+	
+The following is to run just the demo map:
+	./19x25demo.sh
+	./32x32demo.sh
+
+To clean the .class files up:
+	./clean.sh
+
+###Using Commands
+To compile:
+	javac -cp 'lib/SimpleRTSv3.1.jar' src/edu/cwru/SimpleRTS/agent/ProbAgent.java src/edu/cwru/SimpleRTS/agent/Vector2D.java src/edu/cwru/SimpleRTS/agent/Space.java
+	
+To Run:
+	java -cp lib/SimpleRTSv3.1.jar:src edu.cwru.SimpleRTS.Main --config data/midasConfig.xml data/scout_19x25.map --agent  edu.cwru.SimpleRTS.agent.ProbAgent 0 --agent edu.cwru.SimpleRTS.agent.visual.VisualAgent 0 --agentparam true --agentparam true --agent  TowerAgent 1
+	
+Where the data/scout_19x25.map can be changed for the map needed.
+
+##2. Problem Setup
 The scenarios we will solve are built around the “scout_19x25.map”  and “scout_32x32.map” maps in SimpleRTS and the “pa4Config” configuration file. In these maps, we start with a townhall and three peasants in the lower left corner. In the upper right corner there is a goldmine. The goal in this scenario is to collect 2000 gold. However, this map is only partially observable to our units. Somewhere hidden on the map are several enemy Towers. Towers are immobile units that shoot arrows at any unit in 
 their  attack range.  If while moving our peasants come to close to a tower they will be shot and eventually die. (We can build more peasants if we have collected some gold.) Our goal is to collect the 2000 gold while losing as few peasants as possible (essentially by discovering where the towers are hidden and then avoiding them.)
 
@@ -16,5 +41,3 @@ To do this, our agent should maintain a probability distribution over each cell 
 
 Two additional maps are provided in the zipfile (named *demo.map) that show you the actual locations of the Towers in the provided maps, so that you can verify that your posterior probability estimates are accurate and your agent is trying to do the right thing. The cells marked “B” in these maps are the danger zones within the Towers’ attack range. Do not, however, tailor your code to these maps/Tower locations (e.g., by simply always choosing the safe paths from the start) as we will run your code with other maps.From the zipfile, use TowerAgent to control the opponent (Towers). Place the unit_templates file in data/, overwriting your existing unit_templates file. One minor issue is that the version of SimpleRTS.jar you are using has a bug in VisualAgent such that if you run VisualAgent and your peasants die, VisualAgent might throw an exception. This is irrelevant to the assignment however, so we are not going to update the jar file at the moment. You can continue to run the game even with the exception (it is not fatal), or restart.
 
-##2. What to turn in
-Prepare a ZIP file with a text/pdf file containing your written action descriptions and agent code (do not include any class files). Include a README with your name(s) and ID(s) and any other comments you have, such as special compilation instructions if any. Include both your names in the README if you worked as a pair for this assignment.Name your file as “yourname_PA4.zip” and use Blackboard to submit it.  This zip file should only contain your  source code, readmes and makefiles, not executables/object files/data files/anything else, and  must be timestamped by the due date to avoid a late penalty.
