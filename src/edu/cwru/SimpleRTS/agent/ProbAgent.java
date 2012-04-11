@@ -284,7 +284,6 @@ public class ProbAgent extends Agent {
 			
 			if (distance <= towerRadius)
 			{
-				System.out.println("BLAH");
 				if (!isUnit && !isResource && isValid) //check it can exist there 
 				{
 					tempList.add(tower);
@@ -376,7 +375,6 @@ public class ProbAgent extends Agent {
 		{
 			for(int j = 0; j < innerLoopCount; j++)
 			{
-				//System.out.println("NOTPossibleTowerMarked: " + (startX + i) + ", " + (startY + j));
 				Map_Representation.get(startX + i).get(startY + j).possibleTower = 0;
 				Map_Representation.get(startX + i).get(startY + j).distanceToNearestTree = getNearestTree((startX + i), (startY + j));
 			}
@@ -428,7 +426,6 @@ public class ProbAgent extends Agent {
 		{
 			for(int j = 0; j < innerLoopCount; j++)
 			{
-				//System.out.println("PossibleHitMarked: " + (startX+i) + ", " + (startY + j));
 				Map_Representation.get(startX + i).get(startY + j).possibleHit = true;
 			}
 		}
@@ -591,7 +588,7 @@ public class ProbAgent extends Agent {
 		
 		Vector2D spaceLoc = space.pos; 
 		
-		int returnVal = 0;// = DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, mapSize, 0); // top right corner
+		int returnVal = 0;
 		int numTowersWithRadius = 0;
 		int numTowers = towers.size();
 		
@@ -600,25 +597,18 @@ public class ProbAgent extends Agent {
 			if (withinTowerRadius(space, tower))
 				numTowersWithRadius++;
 		}
-		System.out.print("ReturnVal For (" + space.pos.x + ", " + space.pos.y + ") : " );
-		/*if (numTowers > 0)
-			returnVal += (numTowersWithRadius * numTowers);// * DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, 50, 0);
-		else*/
+		
 		returnVal += DistanceMetrics.chebyshevDistance(spaceLoc.x, spaceLoc.y, mapSize, 0);
-		//returnVal += (int) (DistanceMetrics.euclideanDistance(spaceLoc.x, spaceLoc.y, mapSize, 0));
-		System.out.print(returnVal);
 		Space temp = Map_Representation.get(space.pos.x).get(space.pos.y);
 		
 		if(temp.possibleHit)
 		{
 			returnVal += possibleHitValue(temp);
-			System.out.print( " +pH " + possibleHitValue(temp));
 		}
 		
 		if(temp.visited)
 		{
 			returnVal += 150;
-			System.out.print( " +v " + 150);
 		}
 		
 		if(currentPeasant.getYPosition() - temp.pos.y < 0)
@@ -634,10 +624,8 @@ public class ProbAgent extends Agent {
 		if(temp.distanceToNearestTree != Integer.MAX_VALUE)
 		{
 			returnVal -= temp.distanceToNearestTree;
-			System.out.print( " -t " + (temp.distanceToNearestTree));
 		}
 		
-		System.out.println("");
 		return returnVal;
 		
 				
