@@ -4,6 +4,7 @@ import java.util.*;
 import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
 import edu.cwru.SimpleRTS.model.Template.TemplateView;
+import edu.cwru.SimpleRTS.model.resource.ResourceNode.ResourceView;
 import edu.cwru.SimpleRTS.model.resource.ResourceNode.Type;
 import edu.cwru.SimpleRTS.model.resource.ResourceType;
 import edu.cwru.SimpleRTS.model.unit.Unit.UnitView;
@@ -450,6 +451,10 @@ public class ProbAgent extends Agent {
 	//This makes the peasant move to the position we've determined to be most optimal
 	private Action makeMove(Space move) {
 		peasantHealth = currentPeasant.getHP(); //storing the health before the move
+		if (move == null)
+		{
+			//TODO ADD TRAVERSE CODE to path
+		}
 		System.out.printf("moving to (%s, %s) with health %s\n", move.pos.x, move.pos.y, peasantHealth);
 		return Action.createCompoundMove(currentPeasant.getID(), move.pos.x, move.pos.y);
 	}
@@ -476,7 +481,10 @@ public class ProbAgent extends Agent {
 		
 		//If gold mine is a neighbor, we've reached our goal, return null for no move
 		if (containsGold(neighbors))
+		{
+			System.out.println("GREAT SUCCESS");
 			return null;
+		}
 		
 		addToOpenList(neighbors); //add the valid neighbors to the openlist
 		
@@ -627,10 +635,24 @@ public class ProbAgent extends Agent {
 	private ArrayList<Space> findUnvisitedNeighbors(ArrayList<Space> neighbors) {
 		
 		ArrayList<Space> unvisitedNeighbors = new ArrayList<Space>();
+		
+		List<Integer> goldMines = publicState.getResourceNodeIds(Type.GOLD_MINE);
+		Vector2D goldLoc = null;
+		if (goldMines.size() > 0)
+		{
+			ResourceView goldMine = publicState.getResourceNode(goldMines.get(0));
+			goldLoc = new Vector2D(goldMine.getXPosition(), goldMine.getYPosition());
+		}
+		
 		for (Space space : neighbors)
 		{
 			if (!space.visited && !hitList.contains(space))
 				unvisitedNeighbors.add(space);
+						
+			if (goldLoc != null && goldLoc.x == space.pos.x && goldLoc.y == space.pos.y) //gold mine found!
+			{
+				space.gold = true;
+			}
 		}
 		return unvisitedNeighbors;
 	}
@@ -720,6 +742,18 @@ public class ProbAgent extends Agent {
 		boolean NeighborIsUnit = publicState.isUnitAt(x, y);
 		boolean NeighborIsValid = publicState.inBounds(x, y);
 		boolean NeighborIsResource = publicState.isResourceAt(x, y);
+		if (NeighborIsResource)
+		{
+			List<Integer> goldMines = publicState.getResourceNodeIds(Type.GOLD_MINE);
+			if (goldMines.size() > 0)
+			{
+				ResourceView mine = publicState.getResourceNode(goldMines.get(0));
+				if (mine.getXPosition() == x && mine.getYPosition() == y)
+				{
+					NeighborIsResource = false;
+				}
+			}
+		}
 		return ((!NeighborIsUnit && !NeighborIsResource) && NeighborIsValid);
 	}
 	
