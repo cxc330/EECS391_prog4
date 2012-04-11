@@ -1,6 +1,7 @@
 package edu.cwru.SimpleRTS.agent;
 
 import java.util.*;
+
 import edu.cwru.SimpleRTS.action.*;
 import edu.cwru.SimpleRTS.environment.State.StateView;
 import edu.cwru.SimpleRTS.model.Template.TemplateView;
@@ -206,8 +207,25 @@ public class ProbAgent extends Agent {
 	@Override
 	public void terminalStep(StateView state) {}
 	
-	private void traverse(ArrayList<Space> path) {
-		// TODO traverse to next node
+	private HashMap<Integer, Action> traverse(ArrayList<Space> path) {
+		
+		HashMap<Integer, Action> actions = new HashMap<Integer, Action>();
+		List<Integer> townHallIds = findUnitType(publicState.getAllUnitIds(), publicState, townHall);
+		List<Integer> goldMineIds = publicState.getResourceNodeIds(Type.GOLD_MINE);
+		
+			for(int i = 0; i < path.size(); i++)
+			{
+				actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(path.size()-(i+1)).pos.x, path.get(path.size()-(i+1)).pos.y));
+			}
+			actions.put(currentPeasant.getID(), Action.createCompoundDeposit(currentPeasant.getID(), townHallIds.get(0)));
+			for(int i = 0; i < path.size(); i++)
+			{
+				actions.put(currentPeasant.getID(), Action.createCompoundMove(currentPeasant.getID(), path.get(i).pos.x, path.get(i).pos.y));
+			}
+			actions.put(currentPeasant.getID(), Action.createCompoundGather(currentPeasant.getID(), goldMineIds.get(0)));
+	
+			return actions;
+		
 	}
 
 	private void updateTowers(Space move) {
