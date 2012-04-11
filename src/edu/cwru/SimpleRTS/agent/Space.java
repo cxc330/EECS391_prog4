@@ -7,9 +7,10 @@ public class Space {
 	boolean visited = false;
 	boolean gold = false;
 	boolean tree = false;
-	int tower = -1; //-1 undetermined, 0 = no tower, 1 = yes tower
-	boolean possibleTower = false;
+	int possibleTower = -1; //-1 undetermined, 0 = no tower, 1 = yes tower
+	//boolean possibleTower = false;
 	boolean possibleHit = false;
+	int distanceToNearestTree = -1;
 	
 	//Default Constructor
 	public Space (){
