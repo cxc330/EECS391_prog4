@@ -147,6 +147,10 @@ public class ProbAgent extends Agent {
 				actions = traverse(path);
 				System.out.println("traversing");
 			}
+			else
+			{
+				System.out.println("Done! We have " + publicState.getResourceAmount(0, ResourceType.GOLD) + " gold.");
+			}
 		}
 		return actions;
 	}
